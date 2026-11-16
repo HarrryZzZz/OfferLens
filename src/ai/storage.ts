@@ -1,9 +1,18 @@
 import type {ProviderConfig} from './core';
 const KEY='offerlens_ai_config';
-export const defaultConfig:ProviderConfig={provider:'openai',model:'gpt-4o-mini',apiKey:''};
-export async function loadAIConfig():Promise<ProviderConfig>{await chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});const stored=(await chrome.storage.local.get(KEY))[KEY];if(!stored||typeof stored!=='object')return {...defaultConfig};return {provider:'openai',model:typeof stored.model==='string'?stored.model:defaultConfig.model,apiKey:typeof stored.apiKey==='string'?stored.apiKey:''};}
-export async function saveAIConfig(config:ProviderConfig){await chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});await chrome.storage.local.set({[KEY]:{provider:'openai',model:config.model.trim(),apiKey:config.apiKey.trim()}})}
-export async function clearAIConfig(){await chrome.storage.local.remove(KEY)}
+const PROVIDERS_KEY='offerlens_ai_providers_v2';
+export const defaultConfig:ProviderConfig={provider:'openai',model:'gpt-4o-mini',apiKey:'',reasoningEffort:'auto'};
+export const defaultDeepSeek:ProviderConfig={provider:'deepseek',model:'deepseek-flash',apiKey:'',reasoningEffort:'auto'};
+export type ProviderSettings={selected:ProviderConfig['provider'];providers:Record<ProviderConfig['provider'],ProviderConfig>};
+export async function loadProviderSettings():Promise<ProviderSettings>{
+ await chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
+ const stored=await chrome.storage.local.get([KEY,PROVIDERS_KEY]);const v=stored[PROVIDERS_KEY];const old=stored[KEY];
+ const clean=(raw:any,defaults:ProviderConfig):ProviderConfig=>({provider:defaults.provider,model:typeof raw?.model==='string'?raw.model:defaults.model,apiKey:typeof raw?.apiKey==='string'?raw.apiKey:'',reasoningEffort:['auto','none','low','medium','high','max'].includes(raw?.reasoningEffort)?raw.reasoningEffort:'auto'});
+ return {selected:v?.selected==='deepseek'?'deepseek':'openai',providers:{openai:clean(v?.providers?.openai??old,defaultConfig),deepseek:clean(v?.providers?.deepseek,defaultDeepSeek)}};
+}
+export async function loadAIConfig():Promise<ProviderConfig>{const settings=await loadProviderSettings();return settings.providers[settings.selected]}
+export async function saveProviderSettings(settings:ProviderSettings){await chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});await chrome.storage.local.set({[PROVIDERS_KEY]:settings})}
+export async function clearAIConfig(){await chrome.storage.local.remove([KEY,PROVIDERS_KEY])}
 
 export type ReportMode='simple'|'full';
 export type MatchPreferences={reportMode:ReportMode;allowedIds:string[]|null};
