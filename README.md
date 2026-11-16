@@ -4,6 +4,12 @@ OfferLens 是一个中文优先的 Chrome 个人职业档案插件。档案保�
 
 ## 安装与运行
 
+### 下载安装包
+
+下载 [OfferLens v0.3.0 安装包](https://github.com/HarrryZzZz/OfferLens/raw/refs/heads/main/downloads/OfferLens-v0.3.0.zip)，解压后打开 Chrome 的 `chrome://extensions`，启用「开发者模式」，点击「加载已解压的扩展程序」，选择解压得到的 `OfferLens` 文件夹。
+
+### 从源码构建
+
 需要 Node.js 20.19+、22.13+ 或更高受支持版本。
 
 ```bash
